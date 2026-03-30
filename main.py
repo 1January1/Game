@@ -1,6 +1,7 @@
 import pygame
 from pygame import draw, display, Vector2, Rect
 from player import Player
+from pygame.time import Clock
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
@@ -9,6 +10,7 @@ class Game():
         pygame.init()
         self.display_surface = display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.player = Player()
+        self.clock = Clock()
         self.pause = False
         self.offset = Vector2()
     
@@ -18,18 +20,20 @@ class Game():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.pause = True
+            delta = self.clock.tick() / 1000
+            self.player.update(delta)
             
             center = self.player.rect.center
             self.offset.x = -(center[0] - WINDOW_WIDTH / 2)
             self.offset.y = -(center[1] - WINDOW_HEIGHT / 2)
 
             rect = self.player.rect
-
                 
             self.display_surface.fill('white')
             draw.rect(self.display_surface, (255, 0, 0), rect=Rect(-80 + self.offset.x, -80 + self.offset.y, 160, 160))
             draw.rect(self.display_surface, (0, 255, 0), rect=Rect(rect.left + self.offset.x, rect.top + self.offset.y,
                                                                    rect.width, rect.height))
+            display.flip()
             display.update()
         
         pygame.quit()
