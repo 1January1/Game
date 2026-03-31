@@ -1,16 +1,19 @@
 from pygame.rect import Rect
 from pygame.sprite import Sprite
 from pygame.key import get_pressed
-from pygame import K_w, K_a, K_s, K_d, Vector2
+from pygame import K_w, K_a, K_s, K_d, Vector2, draw
 
 class Player(Sprite):
     def __init__(self):
         super().__init__()
-        self.rect = Rect(0, 0, 80, 80)
-        self.rect.center = (0, 0)
+        self.rect = Rect(500, 250, 80, 80)
+        # self.rect.center = (0, 0)
 
         self.direction = Vector2()
         self.speed = 400
+
+    def draw_self(self, screen):
+        draw.rect(screen, (225, 0, 0), self.rect)
     
     def input(self):
         keys = get_pressed()
