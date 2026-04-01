@@ -19,7 +19,6 @@ class Player(Sprite):
         keys = get_pressed()
         self.direction = Vector2(int(keys[K_d]) - int(keys[K_a]), int(keys[K_s]) - int(keys[K_w]))
         self.direction = self.direction.normalize() if self.direction else self.direction
-        print(self.direction)
     
     def move(self, dt):
         self.rect.x += self.direction.x * self.speed * dt

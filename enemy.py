@@ -4,9 +4,9 @@ from pygame import Vector2, draw
 
 
 class Enemy(Sprite):
-    def __init__(self):
+    def __init__(self, x, y):
         super().__init__()
-        self.rect = Rect(100, 250, 80, 80)
+        self.rect = Rect(x, y, 80, 80)
         self.pos = Vector2(self.rect.center)
         self.direction = Vector2()
         self.speed = 300
