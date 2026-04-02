@@ -30,6 +30,9 @@ class Game():
                 if event.type == self.spawn_event:
                     self.enemies.append(self.spawner.spawn_enemy(WINDOW_WIDTH, WINDOW_HEIGHT))
 
+            if self.player.rect.collidelist(self.enemies) != -1:
+                self.pause = True
+
             delta = self.clock.tick() / 1000
 
             self.display_surface.fill('white')
@@ -44,7 +47,6 @@ class Game():
 
             display.flip()
             display.update()
-        
         pygame.quit()
 
 if __name__ == '__main__':
