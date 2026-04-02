@@ -21,6 +21,7 @@ class Game():
         self.spawner = Spawner()
         self.spawn_event = pygame.USEREVENT + 1
         pygame.time.set_timer(self.spawn_event, 2000)
+        self.bullets = pygame.sprite.Group()
 
     def run(self):
         while not self.pause:
@@ -42,8 +43,7 @@ class Game():
                     x.update(self.player, delta)
                     x.draw_self(self.display_surface)
 
-            self.player.update(delta)
-            self.player.draw_self(self.display_surface)
+            self.player.update(delta, self.display_surface)
 
             display.flip()
             display.update()
