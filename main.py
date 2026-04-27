@@ -3,6 +3,7 @@ from pygame import display, Vector2, sprite, font
 from player import Player
 from pygame.time import Clock
 from enemy_spawner import Spawner
+import pytmx
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 

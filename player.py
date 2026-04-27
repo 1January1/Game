@@ -5,6 +5,8 @@ from pygame.key import get_pressed
 from pygame import K_w, K_a, K_s, K_d, Vector2, draw, image, transform, mouse, time
 import math
 from bullet import Bullet
+import pytmx
+
 
 class Player(Sprite):
     def __init__(self):
