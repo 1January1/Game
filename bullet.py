@@ -1,5 +1,5 @@
 import pygame
-from pygame import draw, Vector2
+from pygame import draw, Vector2, sprite
 from pygame.sprite import Sprite
 
 
@@ -15,8 +15,13 @@ class Bullet(Sprite):
         draw_pos = self.rect.center - offset
         draw.circle(screen, (255, 255, 0), draw_pos, 10)
 
-    def update(self, dt, screen, offset):
+    def wall_collision(self, walls):
+        if sprite.spritecollide(self, walls, False):
+            self.kill()
+
+    def update(self, dt, screen, offset, walls):
         self.pos += self.direction * self.speed * dt
+        self.wall_collision(walls)
         self.rect.center = (round(self.pos.x), round(self.pos.y))
         self.draw_self(screen, offset)
         if not (-2000 <= self.rect.x <= 5000 and -2000 <= self.rect.y <= 5000):  # Map limits
