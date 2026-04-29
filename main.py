@@ -6,6 +6,7 @@ from enemy_spawner import Spawner
 import pytmx
 from enemy import Enemy
 from fucking_wall import Wall
+from trigger import Trigger
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
@@ -17,19 +18,13 @@ class Game():
         self.clock = Clock()
         self.pause = False
         self.offset = Vector2()
-        self.enemies = pygame.sprite.Group()
+        self.active_enemies = pygame.sprite.Group()
+        self.passive_enemies = pygame.sprite.Group()
         self.spawner = Spawner()
         self.score = 0
         self.font = font.SysFont("comicsans", 30)
         self.walls = pygame.sprite.Group()
-
-    def start(self):
-        spawn_layer = self.tmx_data.get_layer_by_name("spawn points")
-        for object in spawn_layer:
-            if object.name == "Player spawn":
-                self.player = Player(object.x, object.y)
-            if object.name == "Enemy spawn":
-                self.enemies.add(Enemy(object.x, object.y))
+        self.triggers = pygame.sprite.Group()
 
     def draw_map(self, surface):
         for layer in self.tmx_data.visible_layers:
@@ -49,9 +44,23 @@ class Game():
                 pixel_y = y * self.tmx_data.tileheight
                 self.walls.add(Wall(pixel_x, pixel_y))
 
+    def trigger_spawn(self):
+        trigger_layer = self.tmx_data.get_layer_by_name("room triggers")
+        for trigger in trigger_layer:
+            self.triggers.add(Trigger(trigger.x, trigger.y, trigger.width, trigger.height, trigger.name))
+
+    def start(self):
+        spawn_layer = self.tmx_data.get_layer_by_name("spawn points")
+        for object in spawn_layer:
+            if object.name == "Player spawn":
+                self.player = Player(object.x, object.y)
+            if object.name == "Enemy spawn":
+                self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
+
     def run(self):
         self.start()
         self.wall_spawn()
+        self.trigger_spawn()
         while not self.pause:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -60,11 +69,20 @@ class Game():
             self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
             self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
 
-            hits = pygame.sprite.groupcollide(self.enemies, self.player.bullets, True, True)
+            triggered_room = sprite.spritecollide(self.player, self.triggers, False)
+            if triggered_room:
+                print(f"Triggered: {triggered_room}")
+                for enemy in self.passive_enemies:
+                    if enemy.room == triggered_room[0].name:
+                        self.passive_enemies.remove(enemy)
+                        self.active_enemies.add(enemy)
+                        triggered_room[0].kill()
+
+            hits = pygame.sprite.groupcollide(self.active_enemies, self.player.bullets, True, True)
             for hit in hits:
                 self.score += 10
 
-            hit_player = sprite.spritecollide(self.player, self.enemies, False)
+            hit_player = sprite.spritecollide(self.player, self.active_enemies, False)
             if hit_player:
                 self.pause = True
 
@@ -73,8 +91,12 @@ class Game():
             self.display_surface.fill('white')
             self.draw_map(self.display_surface)
 
-            if self.enemies:
-                for x in self.enemies:
+            if self.passive_enemies:
+                for x in self.passive_enemies:
+                    x.draw_self(self.display_surface, self.offset)
+
+            if self.active_enemies:
+                for x in self.active_enemies:
                     x.update(self.player, delta, self.walls)
                     x.draw_self(self.display_surface, self.offset)
 

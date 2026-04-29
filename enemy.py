@@ -5,7 +5,7 @@ import math
 
 
 class Enemy(Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, room):
         super().__init__()
         self.original_image = image.load('assets/images/enemy_sprite.png')
         self.image = self.original_image
@@ -15,6 +15,8 @@ class Enemy(Sprite):
         self.pos = Vector2(self.hitbox.center)
         self.direction = Vector2()
         self.speed = 300
+        self.room = room
+        print(self.room)
 
     def draw_self(self, screen, offset):
         offset_pos = self.rect.topleft - offset

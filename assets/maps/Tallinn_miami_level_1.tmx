@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="64" tileheight="64" infinite="0" nextlayerid="9" nextobjectid="56">
+<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="64" tileheight="64" infinite="0" nextlayerid="9" nextobjectid="67">
  <tileset firstgid="1" name="tilesheet_complete" tilewidth="64" tileheight="64" tilecount="540" columns="27">
   <image source="../images/tilesheet_complete.png" width="1728" height="1280"/>
   <tile id="0">
@@ -117,36 +117,118 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="8" name="room triggers" visible="0">
-  <object id="45" name="Trigger" type="Trigger" x="128" y="1600" width="616" height="1072"/>
-  <object id="46" name="Trigger" type="Trigger" x="1792" y="1856" width="1216" height="832"/>
-  <object id="49" name="Trigger" type="Trigger" x="1504" y="1184" width="252" height="772"/>
-  <object id="50" name="Trigger" type="Trigger" x="1764" y="1180" width="340" height="676"/>
-  <object id="51" name="Trigger" type="Trigger" x="2112" y="1344" width="860" height="508"/>
-  <object id="52" name="Trigger" type="Trigger" x="2112" y="64" width="960" height="1280"/>
-  <object id="53" name="Trigger" type="Trigger" x="896" y="64" width="1216" height="832"/>
-  <object id="54" name="Trigger" type="Trigger" x="320" y="64" width="576" height="832"/>
+ <objectgroup id="8" name="room triggers">
+  <object id="45" name="Room1" type="Trigger" x="190" y="1662" width="510" height="966"/>
+  <object id="46" name="Room2" type="Trigger" x="1788" y="1910" width="1152" height="724"/>
+  <object id="51" name="Room3" type="Trigger" x="2112" y="1344" width="860" height="508"/>
+  <object id="52" name="Room4" type="Trigger" x="2176" y="126" width="830" height="1150"/>
+  <object id="53" name="Room5" type="Trigger" x="896" y="134" width="1148" height="694"/>
+  <object id="54" name="Room6" type="Trigger" x="392" y="132" width="444" height="694"/>
  </objectgroup>
- <objectgroup id="7" name="spawn points" visible="0">
+ <objectgroup id="7" name="spawn points">
   <object id="38" name="Player spawn" type="Spawn point" x="1132" y="2912">
    <point/>
   </object>
-  <object id="39" name="Enemy spawn" type="Spawn point" x="2348" y="2272">
+  <object id="39" name="Enemy spawn" type="Spawn point" x="2696" y="2116">
+   <properties>
+    <property name="Room" value="Room2"/>
+   </properties>
    <point/>
   </object>
-  <object id="40" name="Enemy spawn" type="Spawn point" x="440" y="2176">
+  <object id="40" name="Enemy spawn" type="Spawn point" x="286" y="2506">
+   <properties>
+    <property name="Room" value="Room1"/>
+   </properties>
    <point/>
   </object>
-  <object id="41" name="Enemy spawn" type="Spawn point" x="2100" y="1556">
+  <object id="41" name="Enemy spawn" type="Spawn point" x="1902" y="1410">
+   <properties>
+    <property name="Room" value="Room3"/>
+   </properties>
    <point/>
   </object>
-  <object id="42" name="Enemy spawn" type="Spawn point" x="2560" y="768">
+  <object id="42" name="Enemy spawn" type="Spawn point" x="2266" y="1006">
+   <properties>
+    <property name="Room" value="Room4"/>
+   </properties>
    <point/>
   </object>
-  <object id="43" name="Enemy spawn" type="Spawn point" x="1456" y="492">
+  <object id="43" name="Enemy spawn" type="Spawn point" x="1354" y="480">
+   <properties>
+    <property name="Room" value="Room5"/>
+   </properties>
    <point/>
   </object>
   <object id="44" name="Enemy spawn" type="Spawn point" x="604" y="488">
+   <properties>
+    <property name="Room" value="Room6"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="56" name="Enemy spawn" type="Spawn point" x="1652" y="1528">
+   <properties>
+    <property name="Room" value="Room3"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="57" name="Enemy spawn" type="Spawn point" x="1814" y="1780">
+   <properties>
+    <property name="Room" value="Room3"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="58" name="Enemy spawn" type="Spawn point" x="2796" y="2530">
+   <properties>
+    <property name="Room" value="Room2"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="59" name="Enemy spawn" type="Spawn point" x="574" y="2518">
+   <properties>
+    <property name="Room" value="Room1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="60" name="Enemy spawn" type="Spawn point" x="436" y="2258">
+   <properties>
+    <property name="Room" value="Room1"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="61" name="Enemy spawn" type="Spawn point" x="2912" y="300">
+   <properties>
+    <property name="Room" value="Room4"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="62" name="Enemy spawn" type="Spawn point" x="2328" y="250">
+   <properties>
+    <property name="Room" value="Room4"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="63" name="Enemy spawn" type="Spawn point" x="2894" y="932">
+   <properties>
+    <property name="Room" value="Room4"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="64" name="Enemy spawn" type="Spawn point" x="2512" y="598">
+   <properties>
+    <property name="Room" value="Room4"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="65" name="Enemy spawn" type="Spawn point" x="1070" y="268">
+   <properties>
+    <property name="Room" value="Room5"/>
+   </properties>
+   <point/>
+  </object>
+  <object id="66" name="Enemy spawn" type="Spawn point" x="1056" y="694">
+   <properties>
+    <property name="Room" value="Room5"/>
+   </properties>
    <point/>
   </object>
  </objectgroup>
