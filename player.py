@@ -9,12 +9,12 @@ import pytmx
 
 
 class Player(Sprite):
-    def __init__(self):
+    def __init__(self, x, y):
         super().__init__()
         # self.rect = Rect(500, 250, 100, 100)
         self.original_image = image.load('assets/images/player_sprite.png')
         self.image = self.original_image
-        self.rect = self.image.get_rect(center=(500, 250))
+        self.rect = self.image.get_rect(center=(x, y))
         self.direction = Vector2()
         self.speed = 400
         self.last_shot_time = 0
