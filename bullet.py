@@ -6,14 +6,14 @@ from pygame.sprite import Sprite
 class Bullet(Sprite):
     def __init__(self, pos, direction):
         super().__init__()
-        self.rect = pygame.Rect(pos[0], pos[1], 10, 10)
+        self.rect = pygame.Rect(pos[0], pos[1], 5, 5)
         self.pos = Vector2(self.rect.center)
         self.direction = direction
-        self.speed = 800
+        self.speed = 1500
 
     def draw_self(self, screen, offset):
         draw_pos = self.rect.center - offset
-        draw.circle(screen, (255, 255, 0), draw_pos, 10)
+        draw.circle(screen, (255, 255, 0), draw_pos, 5)
 
     def wall_collision(self, walls):
         if sprite.spritecollide(self, walls, False):

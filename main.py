@@ -13,7 +13,7 @@ class Game():
     def __init__(self):
         pygame.init()
         self.display_surface = display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/test.tmx")
+        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/Tallinn_miami_level_1.tmx")
         self.clock = Clock()
         self.pause = False
         self.offset = Vector2()
@@ -77,9 +77,6 @@ class Game():
                 for x in self.enemies:
                     x.update(self.player, delta, self.walls)
                     x.draw_self(self.display_surface, self.offset)
-
-            for wall in self.walls:
-                wall.draw(self.display_surface, self.offset)
 
             text = self.font.render(f'Score: {self.score}', True, (0, 0, 0))
 
