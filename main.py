@@ -14,7 +14,7 @@ class Game():
     def __init__(self):
         pygame.init()
         self.display_surface = display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/Tallinn_miami_level_1.tmx")
+        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level1.tmx")
         self.clock = Clock()
         self.pause = False
         self.offset = Vector2()
