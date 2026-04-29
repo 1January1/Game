@@ -40,9 +40,9 @@ class Game():
                 for x, y, gid in layer:
                     tile = tmx_data.get_tile_image_by_gid(gid)
                     if tile:
-                        # Calculate the pixel position
-                        pixel_x = x * tmx_data.tilewidth
-                        pixel_y = y * tmx_data.tileheight
+                        # Subtract offset from pixel position
+                        pixel_x = (x * tmx_data.tilewidth) - self.offset.x
+                        pixel_y = (y * tmx_data.tileheight) - self.offset.y
                         surface.blit(tile, (pixel_x, pixel_y))
 
 
@@ -52,6 +52,9 @@ class Game():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.pause = True
+
+            self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
+            self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
 
             hits = pygame.sprite.groupcollide(self.enemies, self.player.bullets, True, True)
             for hit in hits:
@@ -69,11 +72,11 @@ class Game():
             if self.enemies:
                 for x in self.enemies:
                     x.update(self.player, delta)
-                    x.draw_self(self.display_surface)
+                    x.draw_self(self.display_surface, self.offset)
 
             text = self.font.render(f'Score: {self.score}', True, (0, 0, 0))
 
-            self.player.update(delta, self.display_surface)
+            self.player.update(delta, self.display_surface, self.offset)
             self.display_surface.blit(text, (0, 0))
             display.flip()
             display.update()

@@ -14,8 +14,9 @@ class Enemy(Sprite):
         self.direction = Vector2()
         self.speed = 300
 
-    def draw_self(self, screen):
-        screen.blit(self.image, self.rect)
+    def draw_self(self, screen, offset):
+        offset_pos = self.rect.topleft - offset
+        screen.blit(self.image, offset_pos)
 
     def find_player(self, player):
         target_vector = Vector2(player.rect.center) - self.pos
