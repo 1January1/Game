@@ -58,6 +58,7 @@ class Game():
                 self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
 
     def run(self):
+        pygame.display.set_caption('Tallinn Miami')
         self.start()
         self.wall_spawn()
         self.trigger_spawn()
@@ -84,6 +85,9 @@ class Game():
 
             hit_player = sprite.spritecollide(self.player, self.active_enemies, False)
             if hit_player:
+                self.pause = True
+
+            if not self.passive_enemies and not self.active_enemies:
                 self.pause = True
 
             delta = self.clock.tick() / 1000
