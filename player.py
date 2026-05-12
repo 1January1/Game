@@ -26,9 +26,7 @@ class Player(Sprite):
     def draw_self(self, screen, offset):
         offset_pos = self.rect.topleft - offset
         screen.blit(self.image, offset_pos)
-
-        # DEBUG: Uncomment this to see your fixed hitbox vs rotated image
-        # draw.rect(screen, "red", self.hitbox.move(-offset.x, -offset.y), 2)
+        # draw.rect(screen, "red", self.hitbox.move(-offset.x, -offset.y), 2) # debug hitbox
     
     def input(self, offset):
         keys = get_pressed()

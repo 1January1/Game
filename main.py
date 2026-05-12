@@ -1,5 +1,5 @@
 import pygame
-from pygame import display, Vector2, sprite, font, rect
+from pygame import display, Vector2, font, rect
 from player import Player
 from pygame.time import Clock
 from enemy_spawner import Spawner
@@ -21,7 +21,6 @@ class Game():
         self.active_enemies = pygame.sprite.Group()
         self.passive_enemies = pygame.sprite.Group()
         self.spawner = Spawner()
-        self.score = 0
         self.font = font.SysFont("comicsans", 30)
         self.walls = pygame.sprite.Group()
         self.triggers = pygame.sprite.Group()
@@ -70,20 +69,22 @@ class Game():
             self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
             self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
 
-            triggered_room = sprite.spritecollide(self.player, self.triggers, False)
+            triggered_room = pygame.sprite.spritecollide(self.player, self.triggers, False)
             if triggered_room:
-                print(f"Triggered: {triggered_room}")
                 for enemy in self.passive_enemies:
                     if enemy.room == triggered_room[0].name:
                         self.passive_enemies.remove(enemy)
                         self.active_enemies.add(enemy)
                         triggered_room[0].kill()
 
-            hits = pygame.sprite.groupcollide(self.active_enemies, self.player.bullets, True, True)
-            for hit in hits:
-                self.score += 10
+            for bullet in self.player.bullets:
+                collided = pygame.sprite.spritecollide(bullet, self.active_enemies, False)
+                if collided:
+                    for sprite in collided:
+                        sprite.hit()
+                    bullet.kill()
 
-            hit_player = sprite.spritecollide(self.player, self.active_enemies, False)
+            hit_player = pygame.sprite.spritecollide(self.player, self.active_enemies, False)
             if hit_player:
                 self.pause = True
 
@@ -103,8 +104,6 @@ class Game():
                 for x in self.active_enemies:
                     x.update(self.player, delta, self.walls)
                     x.draw_self(self.display_surface, self.offset)
-
-            text = self.font.render(f'Score: {self.score}', True, (0, 0, 0))
 
             self.player.update(delta, self.display_surface, self.offset, self.walls)
             self.display_surface.blit(text, (0, 0))
