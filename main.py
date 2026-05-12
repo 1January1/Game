@@ -1,6 +1,6 @@
 import pygame
-from pygame import display, Vector2, font, rect
-from player import Player
+from pygame import display, Vector2, font, time
+from player import Player, RELOAD_COOLDOWN
 from pygame.time import Clock
 from enemy_spawner import Spawner
 import pytmx
@@ -21,7 +21,7 @@ class Game():
         self.active_enemies = pygame.sprite.Group()
         self.passive_enemies = pygame.sprite.Group()
         self.spawner = Spawner()
-        self.font = font.SysFont("comicsans", 30)
+        self.font = font.SysFont("comicsans", 40)
         self.walls = pygame.sprite.Group()
         self.triggers = pygame.sprite.Group()
 
@@ -55,9 +55,27 @@ class Game():
                 self.player = Player(object.x, object.y)
             if object.name == "Enemy spawn":
                 self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
+    
+    def render_hud(self):
+        pygame.draw.rect(self.display_surface, "#000000", pygame.Rect(10, WINDOW_HEIGHT - 40, 190, 30))
+        pygame.draw.rect(self.display_surface, "#FF0000", pygame.Rect(15, WINDOW_HEIGHT - 40 + 5, self.player.hits * 18, 20))
+
+        label = f"Laskemoon: {self.player.active_bullets} | {self.player.available_bullets}"
+        if self.player.active_bullets == 0 and self.player.available_bullets > 0:
+            label += " | Vajuta R"
+        text = self.font.render(label, True, "#ffffff")
+        text_size = self.font.size(label)
+        pygame.draw.rect(self.display_surface, "#000000", pygame.Rect(10, WINDOW_HEIGHT - 90, text_size[0] + 10, text_size[1] + 10))
+        self.display_surface.blit(text, (15, WINDOW_HEIGHT - 85))
+
+        if self.player.reload_in_progress:
+            current_time = time.get_ticks()
+            pygame.draw.rect(self.display_surface, "#000000", pygame.Rect(10 + text_size[0] + 20, WINDOW_HEIGHT - 90, 190, text_size[1] + 10))
+            bar_length = (current_time - self.player.last_shot_time) / RELOAD_COOLDOWN * 180
+            pygame.draw.rect(self.display_surface, "#FFFFFF", pygame.Rect(10 + text_size[0] + 25, WINDOW_HEIGHT - 90 + 5, bar_length, text_size[1]))
 
     def run(self):
-        pygame.display.set_caption('Tallinn Miami')
+        pygame.display.set_caption('Police Raid')
         self.start()
         self.wall_spawn()
         self.trigger_spawn()
@@ -86,10 +104,12 @@ class Game():
 
             hit_player = pygame.sprite.spritecollide(self.player, self.active_enemies, False)
             if hit_player:
-                self.pause = True
+                if self.player.try_hurt():
+                    self.pause = True
 
-            if not self.passive_enemies and not self.active_enemies:
-                self.pause = True
+            # TODO: make better ending and game over GUI
+            # if not self.passive_enemies and not self.active_enemies:
+            #     self.pause = True
 
             delta = self.clock.tick() / 1000
 
@@ -106,7 +126,7 @@ class Game():
                     x.draw_self(self.display_surface, self.offset)
 
             self.player.update(delta, self.display_surface, self.offset, self.walls)
-            self.display_surface.blit(text, (0, 0))
+            self.render_hud()
             display.flip()
             display.update()
         pygame.quit()

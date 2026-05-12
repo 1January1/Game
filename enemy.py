@@ -68,7 +68,6 @@ class Enemy(Sprite):
         self.hits -= 1
         if self.hits < 1:
             self.kill()
-        
 
     def update(self, player, dt, walls):
         self.find_player(player)
