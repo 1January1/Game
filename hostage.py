@@ -18,12 +18,22 @@ class Hostage(Sprite):
         self.rect = self.image.get_rect(center=(self.hitbox.x, self.hitbox.y))
         self.pos = Vector2(self.hitbox.center)
         self.hits = MAX_HITS
+        self.active = True
 
     def draw_self(self, screen, offset):
         offset_pos = self.rect.topleft - offset
         screen.blit(self.image, offset_pos)
         if self.hits != MAX_HITS:
             self.draw_healthbar(screen, offset)
+        self.draw_attention(screen, offset)
+    
+    def draw_attention(self, screen, offset):
+        if self.active:
+            origin = self.pos - offset + Vector2(25, -75)
+            pygame.draw.rect(screen, "#000000", pygame.Rect(origin[0], origin[1], 15, 60))
+            pygame.draw.rect(screen, "#FF0000", pygame.Rect(origin[0] + 5, origin[1] + 5, 5, 50))
+            pygame.draw.rect(screen, "#000000", pygame.Rect(origin[0], origin[1] + 70, 15, 15))
+            pygame.draw.rect(screen, "#FF0000", pygame.Rect(origin[0] + 5, origin[1] + 75, 5, 5))
 
     def rotate_to_player(self, player):
         player_pos = Vector2(player.rect.center) - self.pos
@@ -36,7 +46,7 @@ class Hostage(Sprite):
         pygame.draw.rect(display_surface, "#000000", pygame.Rect(origin[0], origin[1], 100, 30))
         pygame.draw.rect(display_surface, "#FF0000", pygame.Rect(origin[0] + 5, origin[1] + 5, self.hits * 30, 20))
 
-    def hit(self, ):
+    def hit(self):
         self.hits -= 1
         if self.hits < 1:
             self.kill()

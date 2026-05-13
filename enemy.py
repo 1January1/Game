@@ -64,7 +64,7 @@ class Enemy(Sprite):
         pygame.draw.rect(display_surface, "#000000", pygame.Rect(origin[0], origin[1], 100, 30))
         pygame.draw.rect(display_surface, "#FF0000", pygame.Rect(origin[0] + 5, origin[1] + 5, self.hits * 30, 20))
     
-    def hit(self, ):
+    def hit(self):
         self.hits -= 1
         if self.hits < 1:
             self.kill()
