@@ -2,11 +2,11 @@ import pygame
 from pygame import display, Vector2, font, time
 from player import Player, RELOAD_COOLDOWN
 from pygame.time import Clock
-from enemy_spawner import Spawner
 import pytmx
 from enemy import Enemy
 from fucking_wall import Wall
 from trigger import Trigger
+from hostage import Hostage
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
@@ -20,7 +20,7 @@ class Game():
         self.offset = Vector2()
         self.active_enemies = pygame.sprite.Group()
         self.passive_enemies = pygame.sprite.Group()
-        self.spawner = Spawner()
+        self.hostages = pygame.sprite.Group()
         self.font = font.SysFont("comicsans", 40)
         self.walls = pygame.sprite.Group()
         self.room_triggers = pygame.sprite.Group()
@@ -62,7 +62,7 @@ class Game():
             if object.name == "Enemy spawn":
                 self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
             if object.name == "Hostage spawn":
-                pass
+                self.hostages.add(Hostage(object.x, object.y))
 
     def load_level(self, level):
         if self.walls:
@@ -118,9 +118,14 @@ class Game():
                         triggered_room[0].kill()
 
             for bullet in self.player.bullets:
-                collided = pygame.sprite.spritecollide(bullet, self.active_enemies, False)
-                if collided:
-                    for sprite in collided:
+                collided_enemy = pygame.sprite.spritecollide(bullet, self.active_enemies, False)
+                collided_hostage = pygame.sprite.spritecollide(bullet, self.hostages, False)
+                if collided_enemy:
+                    for sprite in collided_enemy:
+                        sprite.hit()
+                    bullet.kill()
+                if collided_hostage:
+                    for sprite in collided_hostage:
                         sprite.hit()
                     bullet.kill()
 
@@ -137,6 +142,11 @@ class Game():
                         self.load_level(self.tmx_data)
                     if elevator.name == "lvl2-3":
                         pass
+
+            saved_hostage = pygame.sprite.spritecollide(self.player, self.hostages, False)
+            if saved_hostage:
+                for hostage in saved_hostage:
+                    hostage.kill()
 
             # TODO: make better ending and game over GUI
             # if not self.passive_enemies and not self.active_enemies:
@@ -155,6 +165,11 @@ class Game():
                 for x in self.active_enemies:
                     x.update(self.player, delta, self.walls)
                     x.draw_self(self.display_surface, self.offset)
+
+            if self.hostages:
+                for x in self.hostages:
+                    x.draw_self(self.display_surface, self.offset)
+                    x.update(self.player)
 
             self.player.update(delta, self.display_surface, self.offset, self.walls)
             self.render_hud()
