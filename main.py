@@ -23,7 +23,8 @@ class Game():
         self.spawner = Spawner()
         self.font = font.SysFont("comicsans", 40)
         self.walls = pygame.sprite.Group()
-        self.triggers = pygame.sprite.Group()
+        self.room_triggers = pygame.sprite.Group()
+        self.elevator_trigger = pygame.sprite.Group()
 
     def draw_map(self, surface):
         for layer in self.tmx_data.visible_layers:
@@ -35,26 +36,49 @@ class Game():
                         pixel_y = (y * self.tmx_data.tileheight) - self.offset.y
                         surface.blit(tile, (pixel_x, pixel_y))
 
-    def wall_spawn(self):
-        wall_layer = self.tmx_data.get_layer_by_name("walls")
+    def wall_spawn(self, level):
+        wall_layer = level.get_layer_by_name("walls")
         for x, y, gid in wall_layer:
             if gid != 0:
-                pixel_x = x * self.tmx_data.tilewidth
-                pixel_y = y * self.tmx_data.tileheight
+                pixel_x = x * level.tilewidth
+                pixel_y = y * level.tileheight
                 self.walls.add(Wall(pixel_x, pixel_y))
 
-    def trigger_spawn(self):
-        trigger_layer = self.tmx_data.get_layer_by_name("room triggers")
+    def room_trigger_spawn(self, level):
+        trigger_layer = level.get_layer_by_name("room triggers")
         for trigger in trigger_layer:
-            self.triggers.add(Trigger(trigger.x, trigger.y, trigger.width, trigger.height, trigger.name))
+            self.room_triggers.add(Trigger(trigger.x, trigger.y, trigger.width, trigger.height, trigger.name))
 
-    def start(self):
-        spawn_layer = self.tmx_data.get_layer_by_name("spawn points")
+    def elevator_trigger_spawn(self, level):
+        trigger_layer = level.get_layer_by_name("elevator trigger")
+        for trigger in trigger_layer:
+            self.elevator_trigger.add(Trigger(trigger.x, trigger.y, trigger.width, trigger.height, trigger.name))
+
+    def spawn(self, level):
+        spawn_layer = level.get_layer_by_name("spawn points")
         for object in spawn_layer:
             if object.name == "Player spawn":
                 self.player = Player(object.x, object.y)
             if object.name == "Enemy spawn":
                 self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
+            if object.name == "Hostage spawn":
+                pass
+
+    def load_level(self, level):
+        if self.walls:
+            self.walls = pygame.sprite.Group()
+        if self.room_triggers:
+            self.room_triggers = pygame.sprite.Group()
+        if self.elevator_trigger:
+            self.elevator_trigger = pygame.sprite.Group()
+        if self.passive_enemies:
+            self.passive_enemies = pygame.sprite.Group()
+        if self.active_enemies:
+            self.active_enemies = pygame.sprite.Group()
+        self.wall_spawn(level)
+        self.room_trigger_spawn(level)
+        self.elevator_trigger_spawn(level)
+        self.spawn(level)
     
     def render_hud(self):
         pygame.draw.rect(self.display_surface, "#000000", pygame.Rect(10, WINDOW_HEIGHT - 40, 190, 30))
@@ -76,9 +100,7 @@ class Game():
 
     def run(self):
         pygame.display.set_caption('Police Raid')
-        self.start()
-        self.wall_spawn()
-        self.trigger_spawn()
+        self.load_level(self.tmx_data)
         while not self.pause:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -87,7 +109,7 @@ class Game():
             self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
             self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
 
-            triggered_room = pygame.sprite.spritecollide(self.player, self.triggers, False)
+            triggered_room = pygame.sprite.spritecollide(self.player, self.room_triggers, False)
             if triggered_room:
                 for enemy in self.passive_enemies:
                     if enemy.room == triggered_room[0].name:
@@ -106,6 +128,15 @@ class Game():
             if hit_player:
                 if self.player.try_hurt():
                     self.pause = True
+
+            triggered_elevator = pygame.sprite.spritecollide(self.player, self.elevator_trigger, False)
+            if triggered_elevator:
+                for elevator in triggered_elevator:
+                    if elevator.name == "lvl1-2":
+                        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level2.tmx")
+                        self.load_level(self.tmx_data)
+                    if elevator.name == "lvl2-3":
+                        pass
 
             # TODO: make better ending and game over GUI
             # if not self.passive_enemies and not self.active_enemies:

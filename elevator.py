@@ -7,3 +7,4 @@ class Trigger(Sprite):
         super().__init__()
         self.rect = pygame.Rect(x, y, width, height)
         self.name = name
+        print("hbfdsjbhjh")
