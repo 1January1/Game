@@ -15,6 +15,7 @@ class Game():
     def __init__(self):
         pygame.init()
         self.display_surface = display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        pygame.display.set_caption('Police Raid')
         self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level1.tmx")
         self.clock = Clock()
         self.stopped = False
@@ -23,19 +24,21 @@ class Game():
         self.passive_enemies = pygame.sprite.Group()
         self.hostages = pygame.sprite.Group()
         self.font = font.SysFont("comicsans", 40)
+        self.title_font = font.SysFont("comicsans", 80)
         self.walls = pygame.sprite.Group()
         self.room_triggers = pygame.sprite.Group()
         self.elevator_trigger = pygame.sprite.Group()
         self.bombs = pygame.sprite.Group()
         self.bomb_event = pygame.USEREVENT + 1
         pygame.time.set_timer(self.bomb_event, 1000)
-        self.counter = 300
         self.explosion = False
         self.explosion_size = 10
         self.explosion_sprite= pygame.image.load("assets/images/explosion_sprite.png")
 
-        self.hostages_left = 0
-        self.bombs_left = 0
+        self.game_overed = False
+        self.won = False
+
+        self.load_level(self.tmx_data)
 
 
     def draw_map(self, surface):
@@ -81,6 +84,9 @@ class Game():
                 self.bombs_left += 1
 
     def load_level(self, level):
+        self.counter = 300
+        self.hostages_left = 0
+        self.bombs_left = 0
         if self.walls:
             self.walls = pygame.sprite.Group()
         if self.room_triggers:
@@ -105,7 +111,6 @@ class Game():
         text_size = self.font.size(label)
         pygame.draw.rect(self.display_surface, "#000000", pygame.Rect(posx, posy, text_size[0] + 10, text_size[1] + 10))
         self.display_surface.blit(text, (posx + 5, posy + 5))
-
 
     def render_hud(self):
         pygame.draw.rect(self.display_surface, "#000000", pygame.Rect(10, WINDOW_HEIGHT - 40, 190, 30))
@@ -136,113 +141,143 @@ class Game():
         text_size = self.font.size(label)
         self.draw_hud_text(label, WINDOW_WIDTH - text_size[0] - 20, WINDOW_HEIGHT - text_size[1] - 20)
 
+    def game_over_menu(self):
+        mouse = pygame.mouse.get_pos()
+        self.display_surface.fill("#000000")
+
+        title = "Aitäh mängimise eest!" if self.won else "Proovi uuesti!"
+        button_text = "Alusta algusest"
+        title_size = self.title_font.size(title)
+        button_text_size = self.font.size(button_text)
+        origin = (WINDOW_WIDTH // 2 - title_size[0] // 2, WINDOW_HEIGHT // 2 - (title_size[1] + button_text_size[1] + 15) // 2)
+        button = pygame.Rect(WINDOW_WIDTH // 2 - button_text_size[0] // 2, origin[1] + title_size[1] + 15,
+                            button_text_size[0] + 10, button_text_size[1] + 10)
+        
+        colliding = button.collidepoint(mouse)
+        self.display_surface.blit(self.title_font.render(title, True, "#ffffff"), origin)
+        pygame.draw.rect(self.display_surface, "#000000" if colliding else "#ffffff", button)
+        self.display_surface.blit(self.font.render(button_text, True, "#ffffff" if colliding else "#000000"),
+                                  (button.x + 5, button.y + 5))
+        
+        for event in pygame.event.get():
+            if event.type == 1024:
+                if button.collidepoint(mouse):
+                    self.game_overed = False
+                    self.won = False
+
+                    self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level1.tmx")
+                    self.load_level(self.tmx_data)
+
+    def game_run(self):
+        for event in pygame.event.get():
+            if event.type == pygame.USEREVENT + 1:
+                if self.counter > 0:
+                    self.counter -= 1
+
+        self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
+        self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
+
+        triggered_room = pygame.sprite.spritecollide(self.player, self.room_triggers, False)
+        if triggered_room:
+            for enemy in self.passive_enemies:
+                if enemy.room == triggered_room[0].name:
+                    self.passive_enemies.remove(enemy)
+                    self.active_enemies.add(enemy)
+                    triggered_room[0].kill()
+
+        for bullet in self.player.bullets:
+            collided_enemy = pygame.sprite.spritecollide(bullet, self.active_enemies, False)
+            collided_hostage = pygame.sprite.spritecollide(bullet, self.hostages, False)
+            if collided_enemy:
+                for sprite in collided_enemy:
+                    sprite.hit()
+                bullet.kill()
+            if collided_hostage:
+                for sprite in collided_hostage:
+                    if sprite.hit():
+                        self.game_overed = True
+                bullet.kill()
+
+        hit_player = pygame.sprite.spritecollide(self.player, self.active_enemies, False)
+        if hit_player:
+            if self.player.try_hurt():
+                self.game_overed = True
+
+        triggered_elevator = pygame.sprite.spritecollide(self.player, self.elevator_trigger, False)
+        if triggered_elevator:
+            for elevator in triggered_elevator:
+                if elevator.name == "lvl1-2" and self.hostages_left == 0 and self.bombs_left == 0:
+                    self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level2.tmx")
+                    self.load_level(self.tmx_data)
+                if elevator.name == "lvl2-3" and self.hostages_left == 0 and self.bombs_left == 0:
+                    self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level3.tmx")
+                    self.load_level(self.tmx_data)
+
+        saved_hostage = pygame.sprite.spritecollide(self.player, self.hostages, False)
+        if saved_hostage:
+            for hostage in saved_hostage:
+                if hostage.active:
+                    hostage.active = False
+                    self.hostages_left -= 1
+
+        defused_bomb = pygame.sprite.spritecollide(self.player, self.bombs, False)
+        if defused_bomb:
+            for bomb in defused_bomb:
+                if bomb.active:
+                    bomb.active = False
+                    self.bombs_left -= 1
+
+        delta = self.clock.tick() / 1000
+
+        self.display_surface.fill('white')
+        self.draw_map(self.display_surface)
+
+        if self.passive_enemies:
+            for x in self.passive_enemies:
+                x.draw_self(self.display_surface, self.offset)
+
+        if self.active_enemies:
+            for x in self.active_enemies:
+                x.update(self.player, delta, self.walls)
+                x.draw_self(self.display_surface, self.offset)
+
+        for x in self.hostages:
+            x.draw_self(self.display_surface, self.offset)
+            x.update(self.player)
+
+        for x in self.bombs:
+            x.draw_self(self.display_surface, self.offset)
+
+        if self.hostages_left == 0 and self.bombs_left == 0 and self.tmx_data == "assets/maps/level3.tmx":
+            self.stopped = True
+
+        if self.counter <= 0:
+            self.player.kill()
+            self.explosion = True
+
+        self.player.update(delta, self.display_surface, self.offset, self.walls)
+        self.render_hud()
+
+        if self.explosion:
+            # Leave it where it is!!!!
+            # Why? - Mark
+            self.explosion_size += 2000 * delta
+            scaled_explosion = pygame.transform.scale(self.explosion_sprite,(int(self.explosion_size), int(self.explosion_size)))
+            draw_pos = ((WINDOW_WIDTH // 2) - (self.explosion_size // 2), (WINDOW_HEIGHT // 2) - (self.explosion_size // 2))
+            self.display_surface.blit(scaled_explosion, draw_pos)
+            if self.explosion_size > 2000:
+                self.game_overed = True
+        
+
     def run(self):
-        pygame.display.set_caption('Police Raid')
-        self.load_level(self.tmx_data)
         while not self.stopped:
             for event in pygame.event.get():
-                if event.type == pygame.USEREVENT + 1:
-                    if self.counter > 0:
-                        self.counter -= 1
                 if event.type == pygame.QUIT:
                     self.stopped = True
-
-            self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
-            self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
-
-            triggered_room = pygame.sprite.spritecollide(self.player, self.room_triggers, False)
-            if triggered_room:
-                for enemy in self.passive_enemies:
-                    if enemy.room == triggered_room[0].name:
-                        self.passive_enemies.remove(enemy)
-                        self.active_enemies.add(enemy)
-                        triggered_room[0].kill()
-
-            for bullet in self.player.bullets:
-                collided_enemy = pygame.sprite.spritecollide(bullet, self.active_enemies, False)
-                collided_hostage = pygame.sprite.spritecollide(bullet, self.hostages, False)
-                if collided_enemy:
-                    for sprite in collided_enemy:
-                        sprite.hit()
-                    bullet.kill()
-                if collided_hostage:
-                    for sprite in collided_hostage:
-                        sprite.hit()
-                    bullet.kill()
-
-            hit_player = pygame.sprite.spritecollide(self.player, self.active_enemies, False)
-            if hit_player:
-                if self.player.try_hurt():
-                    self.stopped = True
-
-            triggered_elevator = pygame.sprite.spritecollide(self.player, self.elevator_trigger, False)
-            if triggered_elevator:
-                for elevator in triggered_elevator:
-                    if elevator.name == "lvl1-2" and self.hostages_left == 0 and self.bombs_left == 0:
-                        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level2.tmx")
-                        self.load_level(self.tmx_data)
-                    if elevator.name == "lvl2-3" and not self.hostages and not self.bombs:
-                        self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level3.tmx")
-                        self.load_level(self.tmx_data)
-
-            saved_hostage = pygame.sprite.spritecollide(self.player, self.hostages, False)
-            if saved_hostage:
-                for hostage in saved_hostage:
-                    if hostage.active:
-                        hostage.active = False
-                        self.hostages_left -= 1
-
-            defused_bomb = pygame.sprite.spritecollide(self.player, self.bombs, False)
-            if defused_bomb:
-                for bomb in defused_bomb:
-                    if bomb.active:
-                        bomb.active = False
-                        self.bombs_left -= 1
-
-            # TODO: make better ending and game over GUI
-            # if not self.passive_enemies and not self.active_enemies:
-            #     self.stopped = True
-
-            delta = self.clock.tick() / 1000
-
-            self.display_surface.fill('white')
-            self.draw_map(self.display_surface)
-
-            if self.passive_enemies:
-                for x in self.passive_enemies:
-                    x.draw_self(self.display_surface, self.offset)
-
-            if self.active_enemies:
-                for x in self.active_enemies:
-                    x.update(self.player, delta, self.walls)
-                    x.draw_self(self.display_surface, self.offset)
-
-            for x in self.hostages:
-                x.draw_self(self.display_surface, self.offset)
-                x.update(self.player)
-
-            for x in self.bombs:
-                x.draw_self(self.display_surface, self.offset)
-
-            if not self.hostages and not self.bombs and self.tmx_data == "assets/maps/level3.tmx":
-                self.stopped = True
-
-            if self.counter <= 0:
-                self.player.kill()
-                self.explosion = True
-
-            self.player.update(delta, self.display_surface, self.offset, self.walls)
-            self.render_hud()
-
-            if self.explosion:
-                # Leave it where it is!!!!
-                # Why? - Mark
-                self.explosion_size += 2000 * delta
-                scaled_explosion = pygame.transform.scale(self.explosion_sprite,(int(self.explosion_size), int(self.explosion_size)))
-                draw_pos = ((WINDOW_WIDTH // 2) - (self.explosion_size // 2), (WINDOW_HEIGHT // 2) - (self.explosion_size // 2))
-                self.display_surface.blit(scaled_explosion, draw_pos)
-                if self.explosion_size > 2000:
-                    self.stopped = True
+            if self.game_overed:
+                self.game_over_menu()
+            else:
+                self.game_run()
             display.flip()
             display.update()
         pygame.quit()

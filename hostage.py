@@ -50,6 +50,9 @@ class Hostage(Sprite):
         self.hits -= 1
         if self.hits < 1:
             self.kill()
+            return True
+        else:
+            return False
 
     def update(self, player):
         self.rotate_to_player(player)
