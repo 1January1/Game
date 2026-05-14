@@ -77,14 +77,14 @@ class Game():
         for object in spawn_layer:
             if object.name == "Player spawn":
                 self.player = Player(object.x, object.y)
-            # if object.name == "Enemy spawn":
-            #     self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
-            # if object.name == "Hostage spawn":
-            #     self.hostages.add(Hostage(object.x, object.y))
-            #     self.hostages_left += 1
-            # if object.name == "Bomb spawn":
-            #     self.bombs.add(Bomb(object.x, object.y))
-            #     self.bombs_left += 1
+            if object.name == "Enemy spawn":
+                self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
+            if object.name == "Hostage spawn":
+                self.hostages.add(Hostage(object.x, object.y))
+                self.hostages_left += 1
+            if object.name == "Bomb spawn":
+                self.bombs.add(Bomb(object.x, object.y))
+                self.bombs_left += 1
 
     def load_level(self, level):
         self.counter = 180
@@ -106,7 +106,7 @@ class Game():
             self.hostages = pygame.sprite.Group()
         if self.bombs:
             self.bombs = pygame.sprite.Group()
-        # self.wall_spawn(level)
+        self.wall_spawn(level)
         self.room_trigger_spawn(level)
         self.elevator_trigger_spawn(level)
         self.spawn(level)
