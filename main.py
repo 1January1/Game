@@ -8,6 +8,7 @@ from fucking_wall import Wall
 from trigger import Trigger
 from hostage import Hostage
 from bomb import Bomb
+from elevator import Elevator
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
@@ -40,6 +41,8 @@ class Game():
 
         self.load_level(self.tmx_data)
 
+        self.level = 1
+
 
     def draw_map(self, surface):
         for layer in self.tmx_data.visible_layers:
@@ -67,26 +70,28 @@ class Game():
     def elevator_trigger_spawn(self, level):
         trigger_layer = level.get_layer_by_name("elevator trigger")
         for trigger in trigger_layer:
-            self.elevator_trigger.add(Trigger(trigger.x, trigger.y, trigger.width, trigger.height, trigger.name))
+            self.elevator_trigger.add(Elevator(trigger.x, trigger.y, trigger.width, trigger.height, trigger.name))
 
     def spawn(self, level):
         spawn_layer = level.get_layer_by_name("spawn points")
         for object in spawn_layer:
             if object.name == "Player spawn":
                 self.player = Player(object.x, object.y)
-            if object.name == "Enemy spawn":
-                self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
-            if object.name == "Hostage spawn":
-                self.hostages.add(Hostage(object.x, object.y))
-                self.hostages_left += 1
-            if object.name == "Bomb spawn":
-                self.bombs.add(Bomb(object.x, object.y))
-                self.bombs_left += 1
+            # if object.name == "Enemy spawn":
+            #     self.passive_enemies.add(Enemy(object.x, object.y, object.properties["Room"]))
+            # if object.name == "Hostage spawn":
+            #     self.hostages.add(Hostage(object.x, object.y))
+            #     self.hostages_left += 1
+            # if object.name == "Bomb spawn":
+            #     self.bombs.add(Bomb(object.x, object.y))
+            #     self.bombs_left += 1
 
     def load_level(self, level):
-        self.counter = 300
+        self.counter = 180
         self.hostages_left = 0
         self.bombs_left = 0
+        self.explosion = False
+        self.explosion_size = 10
         if self.walls:
             self.walls = pygame.sprite.Group()
         if self.room_triggers:
@@ -101,7 +106,7 @@ class Game():
             self.hostages = pygame.sprite.Group()
         if self.bombs:
             self.bombs = pygame.sprite.Group()
-        self.wall_spawn(level)
+        # self.wall_spawn(level)
         self.room_trigger_spawn(level)
         self.elevator_trigger_spawn(level)
         self.spawn(level)
@@ -160,8 +165,9 @@ class Game():
                                   (button.x + 5, button.y + 5))
         
         for event in pygame.event.get():
-            if event.type == 1024:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 if button.collidepoint(mouse):
+                    self.level = 1
                     self.game_overed = False
                     self.won = False
 
@@ -169,11 +175,6 @@ class Game():
                     self.load_level(self.tmx_data)
 
     def game_run(self):
-        for event in pygame.event.get():
-            if event.type == pygame.USEREVENT + 1:
-                if self.counter > 0:
-                    self.counter -= 1
-
         self.offset.x = self.player.rect.centerx - WINDOW_WIDTH // 2
         self.offset.y = self.player.rect.centery - WINDOW_HEIGHT // 2
 
@@ -204,12 +205,15 @@ class Game():
                 self.game_overed = True
 
         triggered_elevator = pygame.sprite.spritecollide(self.player, self.elevator_trigger, False)
-        if triggered_elevator:
+        requirements_met = self.hostages_left == 0 and self.bombs_left == 0
+        if triggered_elevator and requirements_met:
             for elevator in triggered_elevator:
-                if elevator.name == "lvl1-2" and self.hostages_left == 0 and self.bombs_left == 0:
+                if elevator.name == "lvl1-2":
+                    self.level = 2
                     self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level2.tmx")
                     self.load_level(self.tmx_data)
-                if elevator.name == "lvl2-3" and self.hostages_left == 0 and self.bombs_left == 0:
+                if elevator.name == "lvl2-3":
+                    self.level = 3
                     self.tmx_data = pytmx.util_pygame.load_pygame("assets/maps/level3.tmx")
                     self.load_level(self.tmx_data)
 
@@ -248,8 +252,9 @@ class Game():
         for x in self.bombs:
             x.draw_self(self.display_surface, self.offset)
 
-        if self.hostages_left == 0 and self.bombs_left == 0 and self.tmx_data == "assets/maps/level3.tmx":
-            self.stopped = True
+        if self.hostages_left == 0 and self.bombs_left == 0 and self.level == 3:
+            self.won = True
+            self.game_overed = True
 
         if self.counter <= 0:
             self.player.kill()
@@ -261,6 +266,7 @@ class Game():
         if self.explosion:
             # Leave it where it is!!!!
             # Why? - Mark
+            # Or else player will render on top of explosion. Right now explosion renders on top of him.
             self.explosion_size += 2000 * delta
             scaled_explosion = pygame.transform.scale(self.explosion_sprite,(int(self.explosion_size), int(self.explosion_size)))
             draw_pos = ((WINDOW_WIDTH // 2) - (self.explosion_size // 2), (WINDOW_HEIGHT // 2) - (self.explosion_size // 2))
@@ -272,6 +278,9 @@ class Game():
     def run(self):
         while not self.stopped:
             for event in pygame.event.get():
+                if event.type == pygame.USEREVENT + 1:
+                    if self.counter > 0:
+                        self.counter -= 1
                 if event.type == pygame.QUIT:
                     self.stopped = True
             if self.game_overed:

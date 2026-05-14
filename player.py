@@ -2,7 +2,7 @@ from pygame.rect import Rect
 from pygame.sprite import Sprite
 from pygame import sprite
 from pygame.key import get_pressed
-from pygame import K_w, K_a, K_s, K_d, K_r, Vector2, draw, image, transform, mouse, time
+from pygame import K_w, K_a, K_s, K_d, K_r, Vector2, image, transform, mouse, time
 import math
 from bullet import Bullet
 
@@ -12,13 +12,12 @@ SHOOT_COOLDOWN = 200
 HURT_COOLDOWN = 500
 RELOAD_COOLDOWN = 2000
 
-STARTING_BULLETS = 100
+STARTING_BULLETS = 150
 MAGAZINE_MAX_BULLETS = 30
 
 class Player(Sprite):
     def __init__(self, x, y):
         super().__init__()
-        # self.rect = Rect(500, 250, 100, 100)
         self.original_image = image.load('assets/images/player_sprite.png')
         self.image = self.original_image
         self.rect = self.image.get_rect(center=(x, y))
